@@ -487,17 +487,6 @@ public class FeignClientFactoryBean
 		return new HardCodedTarget(type, name, FeignClientsRegistrar.getUrl(config.getUrl()));
 	}
 
-	private String resolveFinalUrl(FeignClientProperties.FeignClientConfiguration config) {
-		if (StringUtils.hasText(url)) {
-			if (!url.startsWith("http")) {
-				url = "http://" + url;
-			}
-			return url + cleanPath();
-		}
-
-		return Objects.nonNull(config) ? config.getUrl() : null;
-	}
-
 	private boolean isUrlAvailableInConfig(String contextId) {
 		FeignClientProperties.FeignClientConfiguration config = findConfigByKey(contextId);
 		return Objects.nonNull(config) && StringUtils.hasText(config.getUrl());
