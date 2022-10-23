@@ -37,40 +37,49 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @TestPropertySource("classpath:feign-properties.properties")
 @DirtiesContext
-class FeignClientWithRefreshableUrlRegressionTests {
+class NonRefreshableFeignClientUrlTests {
 
 	@Autowired
-	private Application.RegressionClient regressionClient;
+	private Application.FeignClientWithFixUrl feignClientWithFixUrl;
 
 	@Autowired
-	private Application.RegressionClientWithUrl regressionClientWithUrl;
+	private Application.ConfigBasedClient configBasedClient;
 
 	@Autowired
-	private Application.RegressionClientWithConfigUrl regressionClientWithConfigUrl;
-
-	@Test
-	void shouldInstantiateFeignClientWhenUrlFromFeignClientName() {
-		UrlTestClient.UrlResponseForTests response = regressionClient.test();
-		assertThat(response.getUrl()).isEqualTo("http://regressionClient/test");
-	}
+	private Application.NameBasedUrlClient nameBasedUrlClient;
 
 	@Test
 	void shouldInstantiateFeignClientWhenUrlFromFeignClientUrl() {
-		UrlTestClient.UrlResponseForTests response = regressionClientWithUrl.test();
-		assertThat(response.getUrl()).isEqualTo("http://localhost:8081/test");
+		UrlTestClient.UrlResponseForTests response = feignClientWithFixUrl.fixPath();
+		assertThat(response.getUrl()).isEqualTo("http://localhost:8081/fixPath");
+		assertThat(response.getTargetType()).isEqualTo(Target.HardCodedTarget.class);
 	}
 
 	@Test
-	void shouldInstantiateFeignClientWhenTargetIsHardCodedTarget() {
-		UrlTestClient.UrlResponseForTests response = regressionClientWithUrl.test();
+	void shouldInstantiateFeignClientWhenUrlFromFeignClientUrlGivenPreferenceOverProperties() {
+		UrlTestClient.UrlResponseForTests response = feignClientWithFixUrl.fixPath();
+		assertThat(response.getUrl()).isEqualTo("http://localhost:8081/fixPath");
+	}
+
+	@Test
+	public void shouldInstantiateFeignClientWhenUrlFromProperties() {
+		UrlTestClient.UrlResponseForTests response = configBasedClient.test();
+		assertThat(response.getUrl()).isEqualTo("http://localhost:9999/test");
+		assertThat(response.getTargetType()).isEqualTo(Target.HardCodedTarget.class);
+	}
+
+	@Test
+	void shouldInstantiateFeignClientWhenUrlFromFeignClientName() {
+		UrlTestClient.UrlResponseForTests response = nameBasedUrlClient.test();
+		assertThat(response.getUrl()).isEqualTo("http://nameBasedClient/test");
 		assertThat(response.getTargetType()).isEqualTo(Target.HardCodedTarget.class);
 	}
 
 	@Configuration
 	@EnableAutoConfiguration
 	@EnableConfigurationProperties(FeignClientProperties.class)
-	@EnableFeignClients(clients = { Application.RegressionClient.class, Application.RegressionClientWithUrl.class,
-			Application.RegressionClientWithConfigUrl.class })
+	@EnableFeignClients(clients = { Application.FeignClientWithFixUrl.class, Application.ConfigBasedClient.class,
+			Application.NameBasedUrlClient.class })
 	protected static class Application {
 
 		@Bean
@@ -78,24 +87,24 @@ class FeignClientWithRefreshableUrlRegressionTests {
 			return new UrlTestClient();
 		}
 
-		@FeignClient(name = "regressionClient")
-		protected interface RegressionClient {
+		@FeignClient(name = "feignClientWithFixUrl", url = "http://localhost:8081")
+		protected interface FeignClientWithFixUrl {
+
+			@GetMapping("/fixPath")
+			UrlTestClient.UrlResponseForTests fixPath();
+
+		}
+
+		@FeignClient(name = "configBasedClient")
+		protected interface ConfigBasedClient {
 
 			@GetMapping("/test")
 			UrlTestClient.UrlResponseForTests test();
 
 		}
 
-		@FeignClient(name = "regressionClientWithUrl", url = "http://localhost:8081")
-		protected interface RegressionClientWithUrl {
-
-			@GetMapping("/test")
-			UrlTestClient.UrlResponseForTests test();
-
-		}
-
-		@FeignClient(name = "regressionClientWithConfigUrl")
-		protected interface RegressionClientWithConfigUrl {
+		@FeignClient(name = "nameBasedClient")
+		protected interface NameBasedUrlClient {
 
 			@GetMapping("/test")
 			UrlTestClient.UrlResponseForTests test();
