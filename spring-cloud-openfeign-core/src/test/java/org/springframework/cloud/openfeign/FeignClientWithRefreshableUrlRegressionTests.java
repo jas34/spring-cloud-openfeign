@@ -37,7 +37,7 @@ import static org.assertj.core.api.Assertions.assertThat;
 @SpringBootTest
 @TestPropertySource("classpath:feign-properties.properties")
 @DirtiesContext
-public class FeignClientWithRefreshableUrlRegressionTest {
+class FeignClientWithRefreshableUrlRegressionTests {
 
 	@Autowired
 	private Application.RegressionClient regressionClient;
@@ -49,19 +49,19 @@ public class FeignClientWithRefreshableUrlRegressionTest {
 	private Application.RegressionClientWithConfigUrl regressionClientWithConfigUrl;
 
 	@Test
-	public void shouldInstantiateFeignClientWhenUrlFromFeignClientName() {
+	void shouldInstantiateFeignClientWhenUrlFromFeignClientName() {
 		UrlTestClient.UrlResponseForTests response = regressionClient.test();
 		assertThat(response.getUrl()).isEqualTo("http://regressionClient/test");
 	}
 
 	@Test
-	public void shouldInstantiateFeignClientWhenUrlFromFeignClientUrl() {
+	void shouldInstantiateFeignClientWhenUrlFromFeignClientUrl() {
 		UrlTestClient.UrlResponseForTests response = regressionClientWithUrl.test();
 		assertThat(response.getUrl()).isEqualTo("http://localhost:8081/test");
 	}
 
 	@Test
-	public void shouldInstantiateFeignClientWhenTargetIsHardCodedTarget() {
+	void shouldInstantiateFeignClientWhenTargetIsHardCodedTarget() {
 		UrlTestClient.UrlResponseForTests response = regressionClientWithUrl.test();
 		assertThat(response.getTargetType()).isEqualTo(Target.HardCodedTarget.class);
 	}
